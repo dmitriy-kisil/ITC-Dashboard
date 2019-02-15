@@ -83,6 +83,9 @@ def merge(new_data, old_data):
                             ignore_index=True)
     print(merged_data.columns)
     print(merged_data.dtypes)
+    merged_data = (merged_data.applymap(
+                               lambda x: x.strip() if type(x) is str else x
+                                       ))
     merged_data.drop_duplicates(subset='title', inplace=True)
     merged_data["date3"] = pd.to_datetime(merged_data["Date"],
                                           format="%I:%M %p %d/%m/%Y")
