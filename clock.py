@@ -11,7 +11,7 @@ import subprocess
 sched = BlockingScheduler()
 
 
-@sched.scheduled_job('interval', minutes=1)
+@sched.scheduled_job('interval', hours=12)
 def timed_job():
     """Select time interval."""
     print('This job is run every three minutes.')
