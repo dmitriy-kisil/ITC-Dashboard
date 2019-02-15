@@ -7,7 +7,6 @@ gunicorn
 APScheduler
 pandas
 pygsheets
-ast
 tqdm
 beautifulsoup4
 argparse
