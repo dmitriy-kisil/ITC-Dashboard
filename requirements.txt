@@ -1,0 +1,13 @@
+dash
+dash-renderer
+dash-core-components
+dash-html-components
+plotly
+gunicorn
+APScheduler
+pandas
+pygsheets
+ast
+tqdm
+beautifulsoup4
+argparse

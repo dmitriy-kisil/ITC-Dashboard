@@ -1,0 +1,11 @@
+heroku create
+git init
+git push heroku master
+heroku ps:scale web=0
+heroku ps:scale web=1
+git add .
+git commit -m "Demo"
+git push heroku master
+heroku logs --tail
+heroku open
+heroku ps -a my-dash-app-3
