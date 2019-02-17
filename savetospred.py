@@ -128,7 +128,7 @@ if __name__ == '__main__':
     print("Merge two df in one")
     df = merge(df2, df1)
     print("DataFrame saved in {}".format(str(wks_name)))
-    # save_to_place(wks, wks_name, df)
+    save_to_place(wks, wks_name, df)
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
