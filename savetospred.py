@@ -17,6 +17,7 @@ Created on Tue Feb 13 18:22:53 2019.
 # import argparse
 import ast
 import configparser
+from datetime import datetime
 import pandas as pd
 import pygsheets
 import subprocess
@@ -63,6 +64,18 @@ def get_df(wks):
     return df
 
 
+def get_dates(df):
+    """Get last date and date today."""
+    today_date = datetime.now().strftime('%d-%m-%Y')
+    print(today_date)
+    df["date3"] = pd.to_datetime(df["Date"], format="%I:%M %p %d/%m/%Y")
+    df["date3"] = df["date3"].dt.strftime('%d-%m-%Y')
+    last_date = df["date3"].tolist()[0]
+    print(last_date)
+    del df["date3"]
+    return last_date, today_date
+
+
 def save_to_place(wks, wks_name, df):
     """Save df to spreadsheet."""
     wks.clear()
@@ -99,21 +112,23 @@ def merge(new_data, old_data):
 if __name__ == '__main__':
     print("Begin")
     start0 = t.time()
-    print("Parse data")
-    cmd = "python3 itcfinally.py -c 2"
-    subprocess.call(cmd, shell=True)
     print("Get config data")
     oauth_file, sheet_name, wks_name = get_config()
     print("Connect to Google Spreadsheet")
     wks = connect_to_sheet(oauth_file, sheet_name, wks_name)
     print("Get old df from spreadsheet")
     df1 = get_df(wks)
+    print("Get datetime now and last date from old df")
+    last_date, today_date = get_dates(df1)
+    print("Parse data")
+    cmd = "python3 itcfinally.py -f {} -t {}".format(last_date, today_date)
+    subprocess.call(cmd, shell=True)
     print("Download new df from csv to memory")
     df2 = get_csv()
     print("Merge two df in one")
     df = merge(df2, df1)
     print("DataFrame saved in {}".format(str(wks_name)))
-    save_to_place(wks, wks_name, df)
+    # save_to_place(wks, wks_name, df)
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
