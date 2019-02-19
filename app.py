@@ -12,7 +12,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # df = pd.read_csv("itctray3.csv", index_col=0)
-
+server = app.server
 # print("Get config data")
 oauth_file, sheet_name, wks_name = get_config()
 # print("Connect to Google Spreadsheet")
