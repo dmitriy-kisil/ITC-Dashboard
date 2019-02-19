@@ -20,7 +20,7 @@ def timed_job():
     print("Complete!")
 
 
-job = sched.add_job(timed_job, 'interval', minutes=1)
+job = sched.scheduled_job(timed_job, 'interval', minutes=1)
 job.remove()
 
 
