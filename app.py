@@ -249,13 +249,19 @@ def update_pie1(start_date, end_date):
         dff = df[df['date4'].between(start_date, end_date)]
     else:
         dff = df
+    df1 = df.groupby("category")["date4", "title"].count().reset_index()
+    df2 = df.groupby("category")["date4", "counts"].sum().reset_index()
+
+    df3 = pd.merge(df1, df2)
+    df3["avg"] = df3["counts"]/df3["title"]
+    dff = df3
     return html.Div(
             dcc.Graph(
                 id='piechart',
                 figure={
                     "data": [
                         go.Pie(labels=dff['category'],
-                               values=dff['counts'])
+                               values=dff['avg'])
                     ],
                     "layout": {
                         "title": "Pie chart category by counts",
@@ -272,6 +278,7 @@ def update_pie1(start_date, end_date):
     [Input('my-date-picker-range', 'start_date'),
      Input('my-date-picker-range', 'end_date')])
 def update_graph3(start_date, end_date):
+    global df
     if start_date is not None:
         dff = df.loc[df['date4'].isin([start_date])]
     if end_date is not None:
@@ -280,13 +287,20 @@ def update_graph3(start_date, end_date):
         dff = df[df['date4'].between(start_date, end_date)]
     else:
         dff = df
+    df = dff
+    df1 = df.groupby("author")["date4", "title"].count().reset_index()
+    df2 = df.groupby("author")["date4", "counts"].sum().reset_index()
+
+    df3 = pd.merge(df1, df2)
+    df3["avg"] = df3["counts"]/df3["title"]
+    dff = df3
     return html.Div(
             dcc.Graph(
                 id='piechart2',
                 figure={
                     "data": [
                         go.Pie(labels=dff['author'],
-                               values=dff['counts'])
+                               values=dff['avg'])
                     ],
                     "layout": {
                         "title": "Pie chart authors by counts",
