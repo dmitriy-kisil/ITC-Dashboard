@@ -15,8 +15,8 @@ sched = BlockingScheduler()
 def timed_job():
     """Select time interval."""
     print('This job is run every three minutes.')
-    # cmd = "python3 savetospred.py"
-    # subprocess.call(cmd, shell=True)
+    cmd = "python3 savetospred.py"
+    subprocess.call(cmd, shell=True)
     print("Complete!")
 
 
