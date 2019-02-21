@@ -20,7 +20,7 @@ oauth_file, sheet_name, wks_name = get_config()
 print("Connect to Google Spreadsheet")
 wks = connect_to_sheet(oauth_file, sheet_name, wks_name)
 print("Get old df from spreadsheet")
-df = get_df(wks)
+# df = get_df(wks)
 df["date4"] = pd.to_datetime(df["Date"], format="%I:%M %p %d/%m/%Y")
 last_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[0]
 first_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[-1]
