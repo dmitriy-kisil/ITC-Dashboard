@@ -9,3 +9,15 @@ git push heroku master
 heroku logs --tail
 heroku open
 heroku ps -a my-dash-app-3
+heroku config:set THEANSWERTOEVERYTHINGEVER=42
+import os
+os.environ.get('THEANSWERTOEVERYTHINGEVER')
+git ls-tree -r master --name-only
+heroku config:set METEOR_SETTINGS="$(cat settings.json)"
+heroku pg:info
+heroku addons:create heroku-postgresql:hobby-dev
+Created postgresql-curved-32984 as DATABASE_URL
+export DATABASE_URL=postgres://$(whoami)
+heroku pg:psql
+heroku addons:destroy heroku-postgresql:hobby-dev
+https://stackoverflow.com/questions/14143930/how-can-i-connect-to-heroku-postgres-from-a-google-spreadsheet

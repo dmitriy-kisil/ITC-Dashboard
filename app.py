@@ -5,23 +5,23 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 import pandas as pd
-
-
 import plotly.graph_objs as go
-from savetospred import get_config, connect_to_sheet, get_df
+import psycopg2
+from itcfinally2 import create_conn, sort_by_dates, close_conn
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# df = pd.read_csv("itctray3.csv", index_col=0)
 server = app.server
-print("Get config data")
-oauth_file, sheet_name, wks_name = get_config()
-print("Connect to Google Spreadsheet")
-wks = connect_to_sheet(oauth_file, sheet_name, wks_name)
-print("Get old df from spreadsheet")
-df = get_df(wks)
-df["date4"] = pd.to_datetime(df["Date"], format="%I:%M %p %d/%m/%Y")
+
+print("Connnect to DB")
+conn, cursor = create_conn()
+print("Get data from DB")
+df = sort_by_dates(conn, cursor)
+print("Close connection to DB")
+close_conn(conn, cursor)
+
+df["date4"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
 last_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[0]
 first_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[-1]
 month_allowed = df["date4"].dt.strftime('%m-%Y').tolist()[0]
@@ -86,7 +86,7 @@ app.layout = html.Div([
         ],
     ),
     html.Div(children='Data available from {} to {}'.format(
-                          first_date_string, last_date_string)),
+        first_date_string, last_date_string)),
     # dcc.Input(id='select-date', value='', type='text',
     #           placeholder='Enter a date', style={'textAlign': 'center'}),
     dcc.DatePickerRange(
@@ -120,27 +120,27 @@ def update_barchart1(start_date, end_date):
         dff = df[df['date4'].between(start_date, end_date)]
     else:
         dff = df
-    df1 = dff.groupby("author")["counts", "Date"].sum().reset_index()
+    df1 = dff.groupby("author")["counts", "date4"].sum().reset_index()
     dff = df1.sort_values(by="counts", ascending=False).reset_index(drop=True)
     return html.Div(
-            dcc.Graph(
-                id='barchart1',
-                figure={
-                    "data": [
-                        {
-                            "x": dff["author"],
-                            "y": dff["counts"],
-                            "type": "bar",
-                            "marker": {"color": "#0074D9"},
-                        }
-                    ],
-                    "layout": {
-                        "title": "Bar char author by counts",
-                        "xaxis": {"title": "Authors"},
-                        "yaxis": {"title": "Counts"}
-                    },
+        dcc.Graph(
+            id='barchart1',
+            figure={
+                "data": [
+                    {
+                        "x": dff["author"],
+                        "y": dff["counts"],
+                        "type": "bar",
+                        "marker": {"color": "#0074D9"},
+                    }
+                ],
+                "layout": {
+                    "title": "Bar char author by counts",
+                    "xaxis": {"title": "Authors"},
+                    "yaxis": {"title": "Counts"}
                 },
-            )
+            },
+        )
     )
 
 
@@ -158,35 +158,35 @@ def update_barchart2(start_date, end_date):
     else:
         dff = df
     df1 = dff
-    df1["hour"] = df1["Date"].apply(
-                lambda x: dt.strptime(x, "%I:%M %p %d/%m/%Y").strftime("%H"))
+    df1["hour"] = df1["date2"].apply(
+        lambda x: dt.strptime(x, "%I:%M %p %d/%m/%Y").strftime("%H"))
 
     df1 = df1.groupby("hour")["author", "counts"].sum().reset_index()
     df1.sort_values(by="hour", ascending=True).reset_index(drop=True)
     dff = df1
     return html.Div(
-            dcc.Graph(
-                id='barchart2',
-                figure={
-                    "data": [
-                        {
-                            "x": dff["hour"],
-                            "y": dff["counts"],
-                            "type": "bar",
-                            "marker": {"color": "#0074D9"},
-                        }
-                    ],
-                    "layout": {
-                        "title": "Bar chart counts hourly",
-                        "xaxis": {"title": "Hour",
-                                  # Choose what you want to see on xaxis! In this case list
-                                  "tickvals": dff["hour"],
-                                  "ticktext": dff["hour"]
-                                  },
-                        "yaxis": {"title": "Counts"}
-                    },
+        dcc.Graph(
+            id='barchart2',
+            figure={
+                "data": [
+                    {
+                        "x": dff["hour"],
+                        "y": dff["counts"],
+                        "type": "bar",
+                        "marker": {"color": "#0074D9"},
+                    }
+                ],
+                "layout": {
+                    "title": "Bar chart counts hourly",
+                    "xaxis": {"title": "Hour",
+                              # Choose what you want to see on xaxis! In this case list
+                              "tickvals": dff["hour"],
+                              "ticktext": dff["hour"]
+                              },
+                    "yaxis": {"title": "Counts"}
                 },
-            )
+            },
+        )
     )
 
 
@@ -205,34 +205,34 @@ def update_barchart3(start_date, end_date):
         dff = df
     dff = df
     df1 = dff
-    df1["hour"] = df1["Date"].apply(
-                lambda x: dt.strptime(x, "%I:%M %p %d/%m/%Y").strftime("%H"))
+    df1["hour"] = df1["date2"].apply(
+        lambda x: dt.strptime(x, "%I:%M %p %d/%m/%Y").strftime("%H"))
     df1 = df1.groupby("hour")["author", "title"].count().reset_index()
     df1.sort_values(by="hour", ascending=True).reset_index(drop=True)
     dff = df1
     return html.Div(
-            dcc.Graph(
-                id='barchart3',
-                figure={
-                    "data": [
-                        {
-                            "x": dff["hour"],
-                            "y": dff["title"],
-                            "type": "bar",
-                            "marker": {"color": "#0074D9"},
-                        }
-                    ],
-                    "layout": {
-                        "title": "Bar chart topics hourly",
-                        "xaxis": {"title": "Hour",
-                                  # Choose what you want to see on xaxis! In this case list
-                                  "tickvals": dff["hour"],
-                                  "ticktext": dff["hour"]
-                                  },
-                        "yaxis": {"title": "Number of topics"}
-                    },
+        dcc.Graph(
+            id='barchart3',
+            figure={
+                "data": [
+                    {
+                        "x": dff["hour"],
+                        "y": dff["title"],
+                        "type": "bar",
+                        "marker": {"color": "#0074D9"},
+                    }
+                ],
+                "layout": {
+                    "title": "Bar chart topics hourly",
+                    "xaxis": {"title": "Hour",
+                              # Choose what you want to see on xaxis! In this case list
+                              "tickvals": dff["hour"],
+                              "ticktext": dff["hour"]
+                              },
+                    "yaxis": {"title": "Number of topics"}
                 },
-            )
+            },
+        )
     )
 
 
@@ -253,23 +253,23 @@ def update_pie1(start_date, end_date):
     df2 = df.groupby("category")["date4", "counts"].sum().reset_index()
 
     df3 = pd.merge(df1, df2)
-    df3["avg"] = df3["counts"]/df3["title"]
+    df3["avg"] = df3["counts"] / df3["title"]
     dff = df3
     return html.Div(
-            dcc.Graph(
-                id='piechart',
-                figure={
-                    "data": [
-                        go.Pie(labels=dff['category'],
-                               values=dff['avg'])
-                    ],
-                    "layout": {
-                        "title": "Pie chart category by counts",
-                        "xaxis": {"title": "Category"},
-                        "yaxis": {"title": "Counts"}
-                    },
+        dcc.Graph(
+            id='piechart',
+            figure={
+                "data": [
+                    go.Pie(labels=dff['category'],
+                           values=dff['avg'])
+                ],
+                "layout": {
+                    "title": "Pie chart category by counts",
+                    "xaxis": {"title": "Category"},
+                    "yaxis": {"title": "Counts"}
                 },
-            )
+            },
+        )
     )
 
 
@@ -292,23 +292,23 @@ def update_graph3(start_date, end_date):
     df2 = df.groupby("author")["date4", "counts"].sum().reset_index()
 
     df3 = pd.merge(df1, df2)
-    df3["avg"] = df3["counts"]/df3["title"]
+    df3["avg"] = df3["counts"] / df3["title"]
     dff = df3
     return html.Div(
-            dcc.Graph(
-                id='piechart2',
-                figure={
-                    "data": [
-                        go.Pie(labels=dff['author'],
-                               values=dff['avg'])
-                    ],
-                    "layout": {
-                        "title": "Pie chart authors by counts",
-                        "xaxis": {"title": "Authors"},
-                        "yaxis": {"title": "Counts"}
-                    },
+        dcc.Graph(
+            id='piechart2',
+            figure={
+                "data": [
+                    go.Pie(labels=dff['author'],
+                           values=dff['avg'])
+                ],
+                "layout": {
+                    "title": "Pie chart authors by counts",
+                    "xaxis": {"title": "Authors"},
+                    "yaxis": {"title": "Counts"}
                 },
-            )
+            },
+        )
     )
 
 
@@ -331,30 +331,30 @@ def update_scatter(start_date, end_date):
     df2 = df.groupby("date4")["author", "counts"].sum().reset_index()
 
     df3 = pd.merge(df1, df2)
-    df3["avg"] = df3["counts"]/df3["title"]
+    df3["avg"] = df3["counts"] / df3["title"]
     dff = df3
     return html.Div(
-            dcc.Graph(
-                id='scatterchart',
-                figure={
-                    "data": [
-                        {
-                            "x": dff["date4"],
-                            "y": dff["avg"],
-                            "type": "scatter",
-                            "marker": {"color": "#0074D9"},
-                        }
-                    ],
-                    "layout": {
-                        "title": "Scatter char counts to topic ratio",
-                        "xaxis": {"title": "Date",
-                                  # "range": [min(dff["date4"]),
-                                  #           max(dff["date4"])]
-                                  },
-                        "yaxis": {"title": "Counts on topic"}
-                    },
+        dcc.Graph(
+            id='scatterchart',
+            figure={
+                "data": [
+                    {
+                        "x": dff["date4"],
+                        "y": dff["avg"],
+                        "type": "scatter",
+                        "marker": {"color": "#0074D9"},
+                    }
+                ],
+                "layout": {
+                    "title": "Scatter char counts to topic ratio",
+                    "xaxis": {"title": "Date",
+                              # "range": [min(dff["date4"]),
+                              #           max(dff["date4"])]
+                              },
+                    "yaxis": {"title": "Counts on topic"}
                 },
-            )
+            },
+        )
     )
 
 
@@ -394,8 +394,9 @@ def update_data_table(start_date, end_date, pagination_settings):
         dff = df
     # return dff.to_dict("rows")
     return dff.iloc[
-        pagination_settings['current_page']*pagination_settings['page_size']:
-        (pagination_settings['current_page'] + 1)*pagination_settings['page_size']
+        pagination_settings['current_page'] * pagination_settings['page_size']:
+        (pagination_settings['current_page'] + 1) *
+        pagination_settings['page_size']
     ].to_dict('rows')
 
 

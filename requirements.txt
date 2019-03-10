@@ -6,7 +6,8 @@ plotly
 gunicorn
 APScheduler
 pandas
-pygsheets
 tqdm
 beautifulsoup4
 argparse
+python-dotenv
+psycopg2

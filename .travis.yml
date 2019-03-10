@@ -1,0 +1,6 @@
+language: python
+before_install:
+  - chmod +x test_itcfinally.py
+python:
+  - '3.6'
+script: ./test_itcfinally.py

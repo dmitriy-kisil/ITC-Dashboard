@@ -1,0 +1,21 @@
+build: false
+
+environment:
+  matrix:
+  - PYTHON_VERSION: 3.6
+    MINICONDA: C:\Miniconda-x64
+
+init:
+  - "ECHO %PYTHON_VERSION% %MINICONDA%"
+
+install:
+  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda create --name ITC numpy scipy
+  - activate ITC
+  - pip install -r requirements.txt
+
+test_script:
+  - python test_itcfinally.py
