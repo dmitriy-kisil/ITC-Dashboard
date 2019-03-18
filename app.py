@@ -1,4 +1,5 @@
 import dash
+import datetime
 from datetime import datetime as dt
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
@@ -7,7 +8,7 @@ import dash_table
 import pandas as pd
 import plotly.graph_objs as go
 import psycopg2
-from itcfinally2 import create_conn, sort_by_dates, close_conn
+from itcfinally2 import create_conn, sort_by_dates, close_conn, prep_dashboard, check_table
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -17,16 +18,12 @@ server = app.server
 print("Connnect to DB")
 conn, cursor = create_conn()
 print("Get data from DB")
-df = sort_by_dates(conn, cursor)
+(last_date_string, first_date_string,
+ month_allowed, first_date, last_date, df) = prep_dashboard(conn, cursor)
+print(last_date_string, first_date_string, month_allowed, first_date, last_date)
+# df = sort_by_dates(conn, cursor)
 print("Close connection to DB")
 close_conn(conn, cursor)
-
-df["date4"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
-last_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[0]
-first_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[-1]
-month_allowed = df["date4"].dt.strftime('%m-%Y').tolist()[0]
-df["date4"] = df["date4"].dt.strftime('%Y-%m-%d')
-first_date, last_date = df["date4"].min(), df["date4"].max()
 
 # n_fixed_rows=1,
 '''
@@ -326,9 +323,14 @@ def update_scatter(start_date, end_date):
         dff = df[df['date4'].between(start_date, end_date)]
     else:
         dff = df
-    df = dff
-    df1 = df.groupby("date4")["author", "title"].count().reset_index()
-    df2 = df.groupby("date4")["author", "counts"].sum().reset_index()
+    df0 = dff
+    df0['date4'] = pd.to_datetime(df0['date2'], format="%I:%M %p %d/%m/%Y")
+    df0['date4'] = (
+            df0['date4']
+            .apply(lambda x: dt.strftime(x, '%Y-%m-%d'))
+            )
+    df1 = df0.groupby("date4")["author", "title"].count().reset_index()
+    df2 = df0.groupby("date4")["author", "counts"].sum().reset_index()
 
     df3 = pd.merge(df1, df2)
     df3["avg"] = df3["counts"] / df3["title"]

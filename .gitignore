@@ -2,3 +2,5 @@
 .DS_Store
 .env
 dashplot.py
+fixdf.py
+ifbroke.py

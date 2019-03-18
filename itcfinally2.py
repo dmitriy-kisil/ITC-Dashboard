@@ -125,6 +125,27 @@ def close_conn(conn, cursor):
     cursor.close()
 
 
+def prep_dashboard(conn, cursor):
+    """Get dates from DB; needed for DatePicker in Dashboard."""
+    df = sort_by_dates(conn, cursor)
+    df["date4"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
+    last_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[0]
+    first_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[-1]
+    month_allowed = df["date4"].dt.strftime('%m-%Y').tolist()[0]
+    df["date4"] = df["date4"].dt.strftime('%Y-%m-%d')
+    first_date, last_date = df["date4"].min(), df["date4"].max()
+    df = check_table(conn, cursor)
+    df['date4'] = pd.to_datetime(df['date2'], format="%I:%M %p %d/%m/%Y")
+    df['date4'] = (
+            df['date4']
+            .apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
+            )
+    df = df.sort_values("date4", ascending=False)
+    df = df.reset_index(drop=True)
+    return (last_date_string, first_date_string,
+            month_allowed, first_date, last_date, df)
+
+
 def get_dates(df):
     """Get last date and date today."""
     # print(df.columns)
@@ -345,12 +366,19 @@ def get_one_csv(df):
     # 3:19 PM 13/12/2018
     # Change datetime format to what we want (example above)
     df['date4'] = df['date4'].str.strip().str.replace(" в ", "/")
+
     df['date2'] = pd.to_datetime(df['date4'], format="%d.%m.%Y/%H:%M")
     df['date2'] = (
             df['date2']
             .apply(lambda x: dt.datetime.strftime(x, '%I:%M %p %d/%m/%Y'))
             )
+
     df.drop_duplicates(subset='title', inplace=True)
+    df['date4'] = pd.to_datetime(df['date2'], format="%I:%M %p %d/%m/%Y")
+    df['date4'] = (
+            df['date4']
+            .apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
+            )
     df = df.sort_values("date4", ascending=False)
     df = df.reset_index(drop=True)
     return df
@@ -369,42 +397,53 @@ if __name__ == '__main__':
     start0 = t.time()
     names = ["itctray41.csv", "itctray42.csv", "itctray43.csv"]
     print("Connnect to DB")
+
     conn, cursor = create_conn()
     print("Create table if not exists in DB")
     create_table(conn, cursor)
     # print("Fill DB with data from csv")
     # fill_table(conn, cursor, names[0])
     print("Get old df from DB")
-    df1 = sort_by_dates(conn, cursor)
+    df1 = check_table(conn, cursor)
     # df1 = df1.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df1.to_csv(names[0], index=False)
     print("Get datetime now and last date from old df")
+
     last_date, today_date = get_dates(df1)
     print("Parse data")
     list2 = prep_list_dates(last_date, today_date)
     print("1")
     listadres = prep_numbers_2(1, list2)
     df = calc2(listadres)
+    # print(df.date2.tolist()[:10])
     df = get_one_csv(df)
-    # df['date4'] = pd.to_datetime(df["date2"], format="%I:%M %p %m/%d/%Y")
-    # df["date4"] = df["date4"].dt.strftime('%Y-%m-%d %H:%M:%S.%f')
     # df = df.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df.to_csv(names[1], index=False)
+
     print("Post parsed data in DB")
     fill_table(conn, cursor, names[1])
     print("Delete duplicates in DB")
     delete_duplicates(conn, cursor)
     # drop_table(conn, cursor)
     df3 = sort_by_dates(conn, cursor)
-    # df3 = check_table(conn, cursor)
+    print(df3.head(5))
+    df4 = check_table(conn, cursor)
+    print(df4.head(5))
     # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df3.to_csv(names[2], index=False)
+
+
+    # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
+    # df3.to_csv(names[2], index=False)
+    # df3 = sort_by_dates(conn, cursor)
+    print(df3.head(5))
+    print(df3.date4.tolist()[:10])
     print("Save changes in DB")
     save_changes(conn, cursor)
     print("Close connection to DB")
     close_conn(conn, cursor)
     print("Delete csv")
-    remove_csv(names)
+    # remove_csv(names)
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
