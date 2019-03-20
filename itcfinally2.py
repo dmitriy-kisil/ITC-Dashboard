@@ -156,6 +156,7 @@ def get_dates(df):
     # df["date3"] = pd.to_datetime(df["date2"], format="%I:%M %p %m/%d/%Y")
     df["date3"] = df["date3"].dt.strftime('%d-%m-%Y')
     last_date = df["date3"].tolist()[0]
+    # last_date = df["date4"].max()
     print(last_date)
     del df["date3"]
     return last_date, today_date
@@ -404,7 +405,7 @@ if __name__ == '__main__':
     # print("Fill DB with data from csv")
     # fill_table(conn, cursor, names[0])
     print("Get old df from DB")
-    df1 = check_table(conn, cursor)
+    df1 = sort_by_dates(conn, cursor)
     # df1 = df1.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df1.to_csv(names[0], index=False)
     print("Get datetime now and last date from old df")
@@ -414,6 +415,7 @@ if __name__ == '__main__':
     list2 = prep_list_dates(last_date, today_date)
     print("1")
     listadres = prep_numbers_2(1, list2)
+
     df = calc2(listadres)
     # print(df.date2.tolist()[:10])
     df = get_one_csv(df)
@@ -427,8 +429,8 @@ if __name__ == '__main__':
     # drop_table(conn, cursor)
     df3 = sort_by_dates(conn, cursor)
     print(df3.head(5))
-    df4 = check_table(conn, cursor)
-    print(df4.head(5))
+    # df4 = check_table(conn, cursor)
+    # print(df4.head(5))
     # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df3.to_csv(names[2], index=False)
 
@@ -440,10 +442,11 @@ if __name__ == '__main__':
     print(df3.date4.tolist()[:10])
     print("Save changes in DB")
     save_changes(conn, cursor)
+
     print("Close connection to DB")
     close_conn(conn, cursor)
     print("Delete csv")
-    # remove_csv(names)
+    remove_csv(names)
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
