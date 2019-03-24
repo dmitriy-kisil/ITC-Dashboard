@@ -10,9 +10,6 @@ import subprocess
 
 sched = BlockingScheduler()
 
-cmd = "python3 itcfinally2.py"
-subprocess.call(cmd, shell=True)
-
 
 @sched.scheduled_job('interval', minutes=25)
 def timed_job():
