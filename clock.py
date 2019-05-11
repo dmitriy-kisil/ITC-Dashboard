@@ -10,7 +10,7 @@ import subprocess
 
 sched = BlockingScheduler()
 
-
+'''
 @sched.scheduled_job('interval', minutes=25)
 def timed_job():
     """Select time interval."""
@@ -18,7 +18,7 @@ def timed_job():
     cmd = "python3 itcfinally2.py"
     subprocess.call(cmd, shell=True)
     print("Complete!")
-
+'''
 
 # timed_job()
 
@@ -27,10 +27,12 @@ def timed_job():
 # del job
 
 
-@sched.scheduled_job('cron', day_of_week='mon-fri', hour=10)
+@sched.scheduled_job('cron', day_of_week='mon-sun', hour=18, minute=00)
 def scheduled_job():
     """Schedule a job."""
     print('This job is run every weekday at 5pm.')
+    cmd = "python3 itcfinally2.py"
+    subprocess.call(cmd, shell=True)
 
 
 sched.start()
