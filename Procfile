@@ -1,2 +1,2 @@
 web: gunicorn app:server
-clock: python3 clock.py
+worker: python3 clock.py
