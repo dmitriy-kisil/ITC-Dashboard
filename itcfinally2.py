@@ -260,6 +260,7 @@ def onepage(adres):
     author = soup.find_all("a", class_="screen-reader-text fn")
     # Find how many comments have topic
     counts = soup.find_all("span", class_="comments part")
+    # counts = soup.find_all("div", class_="row")
     # Find preface for topic
     sometext = soup.find_all("div", class_="entry-excerpt hidden-xs")
     # Category
@@ -396,6 +397,7 @@ def remove_csv(names):
 if __name__ == '__main__':
     print("Begin")
     start0 = t.time()
+
     names = ["itctray41.csv", "itctray42.csv", "itctray43.csv"]
     print("Connnect to DB")
 
@@ -447,6 +449,10 @@ if __name__ == '__main__':
     close_conn(conn, cursor)
     print("Delete csv")
     remove_csv(names)
+    
+    df = onepage('https://itc.ua/')
+    print(df['counts'])
+    print(df['counts'][0])
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
