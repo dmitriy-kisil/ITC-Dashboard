@@ -260,7 +260,7 @@ def onepage(adres):
     author = soup.find_all("a", class_="screen-reader-text fn")
     # Find how many comments have topic
     counts = soup.find_all("span", class_="comments part")
-    # counts = soup.find_all("div", class_="row")
+    # counts = soup.find_all("a", class_="disqus-comment-count")
     # Find preface for topic
     sometext = soup.find_all("div", class_="entry-excerpt hidden-xs")
     # Category
@@ -449,10 +449,22 @@ if __name__ == '__main__':
     close_conn(conn, cursor)
     print("Delete csv")
     remove_csv(names)
-    
+
+    '''
     df = onepage('https://itc.ua/')
     print(df['counts'])
     print(df['counts'][0])
+    adres = "https://itc.ua/blogs/italyanskie-inzhenery-razrabotali-chetveronogogo-robota-hyqreal-kotoromu-pod-silu-otbuksirovat-samolet/#disqus-thread/"
+    # Use headers to prevent hide our script
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    # Get page
+    page = requests.get(adres, headers=headers)  # read_timeout=5
+    # Get all of the html code
+    soup = BeautifulSoup(page.content, 'html.parser')
+    header = soup.find("div", id_="disqus-thread")
+    header_text = header
+    print(header_text)
+    '''
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
