@@ -1,6 +1,9 @@
 *.pyc
 .DS_Store
 .env
+*.log
 dashplot.py
 fixdf.py
 ifbroke.py
+try_selenium.py
+itctray.csv

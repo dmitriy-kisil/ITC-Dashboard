@@ -14,6 +14,10 @@ import requests
 import time as t
 from tqdm import tqdm
 
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-f", "--from", required=False, type=str,
@@ -23,6 +27,17 @@ ap.add_argument("-t", "--to", required=False, type=str,
 ap.add_argument("-c", "--count", required=False, type=int,
                 default=None, help="Specify number of pages")
 args = vars(ap.parse_args())
+
+
+def get_count(adres):
+    options = FirefoxOptions()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(options=options)
+    driver.get(adres)
+    elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
+    list_counts = [int(i.text) for i in elems]
+    driver.close()
+    return list_counts
 
 
 def catch_error(something):
@@ -170,7 +185,8 @@ def onepage(adres):
     # Find author the topic
     author = soup.find_all("a", class_="screen-reader-text fn")
     # Find how many comments have topic
-    counts = soup.find_all("span", class_="comments part")
+    # counts = soup.find_all("span", class_="comments part")
+    listcounts = get_count(adres)
     # Find preface for topic
     sometext = soup.find_all("div", class_="entry-excerpt hidden-xs")
     # Category
@@ -233,7 +249,7 @@ def onepage(adres):
     listtime = []
     listtimeup = []
     listauthor = []
-    listcounts = []
+    # listcounts = []
     listsometext = []
     listcategory = []
 
@@ -242,7 +258,7 @@ def onepage(adres):
                  len(list(timeup)),
                  len(list(timeup)),
                  len(list(author)),
-                 len(list(counts)),
+                 len(listcounts),
                  len(list(sometext)),
                  len(list(category))
                  ]
@@ -267,8 +283,8 @@ def onepage(adres):
         listauthor.append(n)
         # n = catch_error(author[i].get_text())
         # listauthor.append(n)
-        o = counts[i].get_text().replace("\n", "").replace("\t", "")
-        listcounts.append(o)
+        # o = counts[i].get_text().replace("\n", "").replace("\t", "")
+        # listcounts.append(o)
         # listcounts = " ".join(counts[i].get_text().split())
         try:
             p = sometext[i].get_text().replace("\n", "").replace("\t", "")
@@ -444,7 +460,7 @@ def get_one_csv(df):
     #          "fulltext","listsources"]]
     print(df.head(5))
     # Save DataFrame to csv
-    df.to_csv("itctray.csv")
+    df.to_csv("itctray.csv", index=False)
     # df.to_csv("all_years.csv")
     # df.to_csv("oneyear2018.csv")
     return df
@@ -464,7 +480,7 @@ if __name__ == '__main__':
         print("2")
         listadres = prep_numbers(args["count"])
         df = calc(listadres)
-    # rint(df.head(5))
+    # print(df.head(5))
     # print(df.columns)
     # print(df.dtypes)
         get_one_csv(df)

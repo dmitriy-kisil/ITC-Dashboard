@@ -15,6 +15,11 @@ import pandas as pd
 import psycopg2
 import requests
 import time as t
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+
 load_dotenv()
 
 
@@ -95,6 +100,14 @@ def delete_duplicates(conn, cursor):
     cursor.execute(sql_query)
 
 
+def delete_counts_null(conn, cursor):
+    """Delete duplicates in table."""
+    # Delete duplicates
+    sql_query = """DELETE FROM messages
+    WHERE counts IS NULL;"""
+    cursor.execute(sql_query)
+
+
 def sort_by_dates(conn, cursor):
     """Sort data by date4 column."""
     # to_char(date2, 'HH12:MI PM DD/MM/YYYY') newsdate,
@@ -123,6 +136,16 @@ def close_conn(conn, cursor):
     """Close connection to DB."""
     conn.close()
     cursor.close()
+
+def get_count(adres):
+    options = FirefoxOptions()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(options=options)
+    driver.get(adres)
+    elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
+    list_counts = [int(i.text) for i in elems]
+    driver.close()
+    return list_counts
 
 
 def prep_dashboard(conn, cursor):
@@ -259,7 +282,8 @@ def onepage(adres):
     # Find author the topic
     author = soup.find_all("a", class_="screen-reader-text fn")
     # Find how many comments have topic
-    counts = soup.find_all("span", class_="comments part")
+    # counts = soup.find_all("span", class_="comments part")
+    listcounts = get_count(adres)
     # counts = soup.find_all("a", class_="disqus-comment-count")
     # Find preface for topic
     sometext = soup.find_all("div", class_="entry-excerpt hidden-xs")
@@ -270,7 +294,7 @@ def onepage(adres):
     listtime = []
     listtimeup = []
     listauthor = []
-    listcounts = []
+    # listcounts = []
     listsometext = []
     listcategory = []
 
@@ -279,7 +303,7 @@ def onepage(adres):
                  len(list(timeup)),
                  len(list(timeup)),
                  len(list(author)),
-                 len(list(counts)),
+                 len(listcounts),
                  len(list(sometext)),
                  len(list(category))
                  ]
@@ -304,8 +328,10 @@ def onepage(adres):
         listauthor.append(n)
         # n = catch_error(author[i].get_text())
         # listauthor.append(n)
+        '''
         o = counts[i].get_text().replace("\n", "").replace("\t", "")
         listcounts.append(o)
+        '''
         # listcounts = " ".join(counts[i].get_text().split())
         try:
             p = sometext[i].get_text().replace("\n", "").replace("\t", "")
@@ -400,12 +426,16 @@ if __name__ == '__main__':
 
     names = ["itctray41.csv", "itctray42.csv", "itctray43.csv"]
     print("Connnect to DB")
-
+    conn, cursor = create_conn()
+    print("Create table if not exists in DB")
+    create_table(conn, cursor)
+    '''
     conn, cursor = create_conn()
     print("Create table if not exists in DB")
     create_table(conn, cursor)
     # print("Fill DB with data from csv")
-    # fill_table(conn, cursor, names[0])
+    fill_table(conn, cursor, "itctray.csv")
+    '''
     print("Get old df from DB")
     df1 = sort_by_dates(conn, cursor)
     # df1 = df1.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
@@ -413,6 +443,17 @@ if __name__ == '__main__':
     print("Get datetime now and last date from old df")
 
     last_date, today_date = get_dates(df1)
+    # 27.05 15.03
+    print(last_date)
+    print(today_date)
+    # drop_table(conn, cursor)
+    # save_changes(conn, cursor)
+    # print("Close connection to DB")
+    # close_conn(conn, cursor)
+    '''
+    today_date = "27-05-2019"
+    last_date = "25-05-2019"
+    '''
     print("Parse data")
     list2 = prep_list_dates(last_date, today_date)
     print("1")
@@ -464,6 +505,7 @@ if __name__ == '__main__':
     header = soup.find("div", id_="disqus-thread")
     header_text = header
     print(header_text)
+
     '''
     end0 = t.time()
     elapsed_time0 = end0 - start0

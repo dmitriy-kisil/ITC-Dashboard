@@ -8,6 +8,7 @@ APScheduler
 pandas
 tqdm
 beautifulsoup4
+selenium
 argparse
 python-dotenv
 psycopg2
