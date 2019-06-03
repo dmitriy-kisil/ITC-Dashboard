@@ -21,3 +21,6 @@ export DATABASE_URL=postgres://$(whoami)
 heroku pg:psql
 heroku addons:destroy heroku-postgresql:hobby-dev
 https://stackoverflow.com/questions/14143930/how-can-i-connect-to-heroku-postgres-from-a-google-spreadsheet
+$ heroku buildpacks:add http://github.com/buitron/firefox-buildpack
+$ heroku buildpacks:add http://github.com/buitron/geckodriver-buildpack
+$ git push heroku master

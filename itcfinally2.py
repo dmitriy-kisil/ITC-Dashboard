@@ -19,6 +19,7 @@ import time as t
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 load_dotenv()
 
@@ -137,10 +138,14 @@ def close_conn(conn, cursor):
     conn.close()
     cursor.close()
 
+
 def get_count(adres):
     options = FirefoxOptions()
     options.add_argument("--headless")
+    # caps = DesiredCapabilities.FIREFOX.copy()
+    # caps['marionette'] = False
     driver = webdriver.Firefox(options=options)
+    # driver = webdriver.Firefox(capabilities=cap, options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
     list_counts = [int(i.text) for i in elems]
