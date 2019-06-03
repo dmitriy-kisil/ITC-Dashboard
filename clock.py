@@ -8,7 +8,7 @@ Created on Tue Feb 15 18:22:53 2019.
 from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 
-sched = BlockingScheduler()
+sched = BlockingScheduler(timezone="Europe/Kyiv")
 
 '''
 @sched.scheduled_job('interval', minutes=25)
@@ -27,7 +27,7 @@ def timed_job():
 # del job
 
 
-@sched.scheduled_job('cron', day_of_week='mon-sun', hour=20, minute=00)
+@sched.scheduled_job('cron', day_of_week='mon-sun', hour=20, minute=15)
 def scheduled_job():
     """Schedule a job."""
     print('This job is run every weekday at 5pm.')
