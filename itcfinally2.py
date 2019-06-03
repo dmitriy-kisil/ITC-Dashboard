@@ -144,7 +144,8 @@ def get_count(adres):
     options.add_argument("--headless")
     # caps = DesiredCapabilities.FIREFOX.copy()
     # caps['marionette'] = False
-    driver = webdriver.Firefox(options=options)
+    PATH = os.environ["PATH"]
+    driver = webdriver.Firefox(executable_path=PATH, options=options)
     # driver = webdriver.Firefox(capabilities=cap, options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
