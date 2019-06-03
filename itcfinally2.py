@@ -144,7 +144,10 @@ def get_count(adres):
     options.add_argument("--headless")
     # caps = DesiredCapabilities.FIREFOX.copy()
     # caps['marionette'] = False
+    from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+    cap = DesiredCapabilities().FIREFOX
+    cap["marionette"] = False
     driver = webdriver.Firefox(options=options)
     # driver = webdriver.Firefox(capabilities=cap, options=options)
     driver.get(adres)
