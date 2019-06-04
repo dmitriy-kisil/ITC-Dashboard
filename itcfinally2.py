@@ -151,8 +151,8 @@ def get_count(adres):
 
     cap = DesiredCapabilities().FIREFOX
     cap["marionette"] = True
-    binary = '/usr/bin/firefox'
-    driver = webdriver.Firefox(firefox_binary=binary, capabilities=cap, options=options)
+    binary = '/app/vendor/firefox'
+    driver = webdriver.Firefox(capabilities=cap, options=options)
     # driver = webdriver.Firefox(options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
