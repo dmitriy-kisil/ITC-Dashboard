@@ -150,9 +150,9 @@ def get_count(adres):
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
     cap = DesiredCapabilities().FIREFOX
-    cap["marionette"] = True
-    # driver = webdriver.Firefox(capabilities=cap, options=options)
-    driver = webdriver.Firefox(options=options)
+    cap["marionette"] = False
+    driver = webdriver.Firefox(capabilities=cap, options=options)
+    # driver = webdriver.Firefox(options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
     list_counts = [int(i.text) for i in elems]
