@@ -8,6 +8,9 @@ Created on Tue Feb 15 18:22:53 2019.
 from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 
+cmd = "python3 itcfinally2.py"
+subprocess.call(cmd, shell=True)
+
 sched = BlockingScheduler(timezone="Europe/Kiev")
 
 '''
@@ -27,7 +30,7 @@ def timed_job():
 # del job
 
 
-@sched.scheduled_job('cron', day_of_week='mon-sun', hour=21, minute=04)
+@sched.scheduled_job('cron', day_of_week='mon-sun', hour=20, minute=00)
 def scheduled_job():
     """Schedule a job."""
     print('This job is run every weekday at 5pm.')

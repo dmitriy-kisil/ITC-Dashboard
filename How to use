@@ -23,7 +23,7 @@ heroku addons:destroy heroku-postgresql:hobby-dev
 https://stackoverflow.com/questions/14143930/how-can-i-connect-to-heroku-postgres-from-a-google-spreadsheet
 # $ heroku buildpacks:add http://github.com/buitron/firefox-buildpack
 # $ heroku buildpacks:add http://github.com/buitron/geckodriver-buildpack
-# $ heroku builpacks:add http://github.com/bensomers/firefox-buildpack
+# $ heroku buildpacks:add http://github.com/bensomers/firefox-buildpack
 # $ heroku buildpacks:add http://github.com/evosystem-jp/heroku-buildpack-firefox
 $ git push heroku master
 # How to get current timezone
@@ -31,3 +31,4 @@ tzlocal import get_localzone
 tz = get_localzone()
 print(tz)
 >>"Europe/Kiev"
+sudo chmod +x /usr/local/bin/geckodriver'
