@@ -27,7 +27,7 @@ def timed_job():
 # del job
 
 
-@sched.scheduled_job('cron', day_of_week='mon-sun', hour=20, minute=45)
+@sched.scheduled_job('cron', day_of_week='mon-sun', hour=20, minute=50)
 def scheduled_job():
     """Schedule a job."""
     print('This job is run every weekday at 5pm.')
