@@ -140,16 +140,20 @@ def close_conn(conn, cursor):
 
 
 def get_count(adres):
-    options = FirefoxOptions()
-    options.add_argument("--headless")
+    # options = FirefoxOptions()
+    # options.add_argument("--headless")
     # caps = DesiredCapabilities.FIREFOX.copy()
     # caps['marionette'] = False
+    from selenium.webdriver.firefox.options import Options
+    options = Options()
+    options.set_headless(headless=True)
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
     cap = DesiredCapabilities().FIREFOX
     cap["marionette"] = False
+    binary = '/app/vendor/firefox'
     driver = webdriver.Firefox(capabilities=cap, options=options)
-    # driver = webdriver.Firefox(capabilities=cap, options=options)
+    # driver = webdriver.Firefox(options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
     list_counts = [int(i.text) for i in elems]
