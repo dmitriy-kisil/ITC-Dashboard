@@ -150,7 +150,14 @@ def get_count(adres):
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
     cap = DesiredCapabilities().FIREFOX
+<<<<<<< HEAD
     cap["marionette"] = True
+<<<<<<< HEAD
+=======
+=======
+    cap["marionette"] = False
+>>>>>>> f57ca0d3b21b9a862d1ba9679c595cb946c1e02c
+>>>>>>> 046e6ec46502572b8072001780a176a298326de5
     binary = '/app/vendor/firefox'
     driver = webdriver.Firefox(capabilities=cap, options=options)
     # driver = webdriver.Firefox(options=options)
