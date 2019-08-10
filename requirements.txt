@@ -12,3 +12,4 @@ selenium
 argparse
 python-dotenv
 psycopg2
+requests
