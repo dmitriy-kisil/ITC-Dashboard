@@ -5,26 +5,28 @@ Created on Thu Jul 12 16:44:53 2018.
 
 @author: dmitriy
 """
-# import all the necessary libraries
-from bs4 import BeautifulSoup
 import datetime as dt
-from datetime import datetime
-from dotenv import load_dotenv, find_dotenv
 import os
+import time as t
+from datetime import datetime
+from typing import Any, List, Tuple, Iterable
+
 import pandas as pd
 import psycopg2
 import requests
-import time as t
 
+# import all the necessary libraries
+from bs4 import BeautifulSoup
+from dotenv import find_dotenv, load_dotenv
 from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 load_dotenv()
 
 
-def catch_error(something):
+def catch_error(something: str) -> str:
     """Try catch an exception.
 
     __Attributes__
@@ -45,15 +47,15 @@ def catch_error(something):
         return something
 
 
-def create_conn():
+def create_conn() -> Tuple[Any, Any]:
     """Create connection to PostgreSQL DB."""
-    DATABASE_URL = os.environ['DATABASE_URL']
+    DATABASE_URL = os.environ["DATABASE_URL"]
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     return conn, cursor
 
 
-def create_table(conn, cursor):
+def create_table(conn, cursor) -> None:
     """Create a table if not exists in DB."""
     sql_query = """CREATE TABLE IF NOT EXISTS messages
     (
@@ -71,8 +73,8 @@ def create_table(conn, cursor):
     cursor.execute(sql_query)
 
 
-def fill_table(conn, cursor, csv_file_name):
-    """Fill empty table wth data from csv."""
+def fill_table(conn, cursor, csv_file_name) -> None:
+    """Fill empty table with data from csv."""
     sql = """COPY messages(title, date4, time3, author, counts,
      sometext, category, date2) FROM STDIN DELIMITER ',' CSV HEADER;"""
     cursor.copy_expert(sql, open(csv_file_name, "r"))
@@ -86,7 +88,7 @@ def check_table(conn, cursor):
     return df
 
 
-def delete_duplicates(conn, cursor):
+def delete_duplicates(conn, cursor) -> None:
     """Delete duplicates in table."""
     # Delete duplicates
     sql_query = """DELETE FROM messages
@@ -101,7 +103,7 @@ def delete_duplicates(conn, cursor):
     cursor.execute(sql_query)
 
 
-def delete_counts_null(conn, cursor):
+def delete_counts_null(conn, cursor) -> None:
     """Delete duplicates in table."""
     # Delete duplicates
     sql_query = """DELETE FROM messages
@@ -121,30 +123,31 @@ def sort_by_dates(conn, cursor):
     return df
 
 
-def drop_table(conn, cursor):
+def drop_table(conn, cursor) -> None:
     """Drop a table if exists."""
     sql_query = "DROP TABLE IF EXISTS messages;"
     cursor.execute(sql_query)
 
 
-def save_changes(conn, cursor):
+def save_changes(conn, cursor) -> None:
     """Commit changes to DB."""
     # Make the changes to the database persistent
     conn.commit()
 
 
-def close_conn(conn, cursor):
+def close_conn(conn, cursor) -> None:
     """Close connection to DB."""
     conn.close()
     cursor.close()
 
 
-def get_count(adres):
+def get_count(adres: str) -> List[int]:
     # options = FirefoxOptions()
     # options.add_argument("--headless")
     # caps = DesiredCapabilities.FIREFOX.copy()
     # caps['marionette'] = False
     from selenium.webdriver.firefox.options import Options
+
     options = Options()
     options.set_headless(headless=True)
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -153,9 +156,12 @@ def get_count(adres):
 
     cap["marionette"] = True
 
-    binary = '/app/vendor/firefox'
-    driver = webdriver.Firefox(capabilities=cap, options=options,
-                               executable_path="/home/dmitriy/Desktop/ITC-Dashboard/geckodriver")
+    # binary = "/app/vendor/firefox"
+    driver = webdriver.Firefox(
+        capabilities=cap,
+        options=options,
+        executable_path="/home/dmitriy/Desktop/ITC-Dashboard/geckodriver",
+    )
     # driver = webdriver.Firefox(options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
@@ -168,32 +174,35 @@ def prep_dashboard(conn, cursor):
     """Get dates from DB; needed for DatePicker in Dashboard."""
     df = sort_by_dates(conn, cursor)
     df["date4"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
-    last_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[0]
-    first_date_string = df["date4"].dt.strftime('%d %B, %Y').tolist()[-1]
-    month_allowed = df["date4"].dt.strftime('%m-%Y').tolist()[0]
-    df["date4"] = df["date4"].dt.strftime('%Y-%m-%d')
+    last_date_string = df["date4"].dt.strftime("%d %B, %Y").tolist()[0]
+    first_date_string = df["date4"].dt.strftime("%d %B, %Y").tolist()[-1]
+    month_allowed = df["date4"].dt.strftime("%m-%Y").tolist()[0]
+    df["date4"] = df["date4"].dt.strftime("%Y-%m-%d")
     first_date, last_date = df["date4"].min(), df["date4"].max()
     df = check_table(conn, cursor)
-    df['date4'] = pd.to_datetime(df['date2'], format="%I:%M %p %d/%m/%Y")
-    df['date4'] = (
-            df['date4']
-            .apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
-            )
+    df["date4"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
+    df["date4"] = df["date4"].apply(lambda x: dt.datetime.strftime(x, "%Y-%m-%d %H:%M"))
     df = df.sort_values("date4", ascending=False)
     df = df.reset_index(drop=True)
-    return (last_date_string, first_date_string,
-            month_allowed, first_date, last_date, df)
+    return (
+        last_date_string,
+        first_date_string,
+        month_allowed,
+        first_date,
+        last_date,
+        df,
+    )
 
 
-def get_dates(df):
+def get_dates(df) -> Tuple[str, str]:
     """Get last date and date today."""
     # print(df.columns)
     # print(df.dtypes)
-    today_date = datetime.now().strftime('%d-%m-%Y')
+    today_date = datetime.now().strftime("%d-%m-%Y")
     print(today_date)
     df["date3"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
     # df["date3"] = pd.to_datetime(df["date2"], format="%I:%M %p %m/%d/%Y")
-    df["date3"] = df["date3"].dt.strftime('%d-%m-%Y')
+    df["date3"] = df["date3"].dt.strftime("%d-%m-%Y")
     last_date = df["date3"].tolist()[0]
     # last_date = df["date4"].max()
     print(last_date)
@@ -201,7 +210,7 @@ def get_dates(df):
     return last_date, today_date
 
 
-def prep_list_dates(last_date, today_date):
+def prep_list_dates(last_date: str, today_date: str) -> List[str]:
     """Prep list with dates."""
     list2 = [last_date, today_date]
     return list2
@@ -211,7 +220,7 @@ def prep_list_dates(last_date, today_date):
 # list1 = [i for i in range(1, args["count"])]
 
 
-def get_search_query(list2, t):
+def get_search_query(list2: List[str], t: int) -> str:
     """Create a query, that we will parse.
 
     __Attributes__
@@ -223,18 +232,22 @@ def get_search_query(list2, t):
 
     """
     if t > 1:
-        search_query = ("https://itc.ua/page/" + str(t)
-                        + "/?s&after=" + str(list2[0])
-                        + "&before=" + str(list2[1])
-                        )
+        search_query = (
+            "https://itc.ua/page/"
+            + str(t)
+            + "/?s&after="
+            + str(list2[0])
+            + "&before="
+            + str(list2[1])
+        )
     else:
-        search_query = ("https://itc.ua/?s&after=" + str(list2[0])
-                        + "&before=" + str(list2[1])
-                        )
+        search_query = (
+            "https://itc.ua/?s&after=" + str(list2[0]) + "&before=" + str(list2[1])
+        )
     return search_query
 
 
-def prep_numbers_2(count, list2):
+def prep_numbers_2(count: int, list2: List[str]) -> List[str]:
     """Prep list to parse.
 
     __Attributes__
@@ -253,13 +266,18 @@ def prep_numbers_2(count, list2):
     # Use for loop to fill list above with page adresses
     for i in numbers:
         if i == 1:
-            example = ("https://itc.ua/?s&after=" + str(list2[0])
-                       + "&before=" + str(list2[1]))
+            example = (
+                "https://itc.ua/?s&after=" + str(list2[0]) + "&before=" + str(list2[1])
+            )
         else:
-            example = ("https://itc.ua/page/" + str(i)
-                       + "/?s&after=" + str(list2[0])
-                       + "&before=" + str(list2[1])
-                       )
+            example = (
+                "https://itc.ua/page/"
+                + str(i)
+                + "/?s&after="
+                + str(list2[0])
+                + "&before="
+                + str(list2[1])
+            )
 
         listadres.append(example)
     # Check output
@@ -267,7 +285,7 @@ def prep_numbers_2(count, list2):
     return listadres
 
 
-def onepage(adres):
+def onepage(adres: str):
     """Take one query and get DataFrame.
 
     __Attributes__
@@ -278,11 +296,11 @@ def onepage(adres):
 
     """
     # Use headers to prevent hide our script
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    headers = {"User-Agent": "Mozilla/5.0"}
     # Get page
     page = requests.get(adres, headers=headers)  # read_timeout=5
     # Get all of the html code
-    soup = BeautifulSoup(page.content, 'html.parser')
+    soup = BeautifulSoup(page.content, "html.parser")
     header = soup.find("header", class_="entry-header")
     # header_text = header.get_text()
     if header is not None:
@@ -314,16 +332,18 @@ def onepage(adres):
     listsometext = []
     listcategory = []
 
-    limit = min([len(list(title)),
-                 len(list(time)),
-                 len(list(timeup)),
-                 len(list(timeup)),
-                 len(list(author)),
-                 len(listcounts),
-                 len(list(sometext)),
-                 len(list(category))
-                 ]
-                )
+    limit = min(
+        [
+            len(list(title)),
+            len(list(time)),
+            len(list(timeup)),
+            len(list(timeup)),
+            len(list(author)),
+            len(listcounts),
+            len(list(sometext)),
+            len(list(category)),
+        ]
+    )
 
     # Fill the lists above our scraping date
     for i in range(0, limit):
@@ -344,10 +364,10 @@ def onepage(adres):
         listauthor.append(n)
         # n = catch_error(author[i].get_text())
         # listauthor.append(n)
-        '''
+        """
         o = counts[i].get_text().replace("\n", "").replace("\t", "")
         listcounts.append(o)
-        '''
+        """
         # listcounts = " ".join(counts[i].get_text().split())
         try:
             p = sometext[i].get_text().replace("\n", "").replace("\t", "")
@@ -359,20 +379,22 @@ def onepage(adres):
         # listcategory = " ".join(category[i].get_text().split())
 
     # Create DataFrame, that will contains info from lists
-    df = pd.DataFrame({
+    df = pd.DataFrame(
+        {
             "title": listtitle,
             "date4": listtime,
             "time3": listtimeup,
             "author": listauthor,
             "counts": listcounts,
             "sometext": listsometext,
-            "category": listcategory
-            })
+            "category": listcategory,
+        }
+    )
     # Function will return that DataFrame
     return df
 
 
-def calc2(listadres):
+def calc2(listadres: List[str]):
     """Take list and return df with parsed data.
 
     __Attributes__
@@ -391,8 +413,8 @@ def calc2(listadres):
         else:
             t.sleep(1.5)
         df = pd.concat([df, onepage(v)], ignore_index=True)
-        print("Parsed {} pages".format(c+1))
-        listadres.append(get_search_query(list2, c+1))
+        print("Parsed {} pages".format(c + 1))
+        listadres.append(get_search_query(list2, c + 1))
         t.sleep(1.5)
     return df
 
@@ -409,26 +431,22 @@ def get_one_csv(df):
     """
     # 3:19 PM 13/12/2018
     # Change datetime format to what we want (example above)
-    df['date4'] = df['date4'].str.strip().str.replace(" в ", "/")
+    df["date4"] = df["date4"].str.strip().str.replace(" в ", "/")
 
-    df['date2'] = pd.to_datetime(df['date4'], format="%d.%m.%Y/%H:%M")
-    df['date2'] = (
-            df['date2']
-            .apply(lambda x: dt.datetime.strftime(x, '%I:%M %p %d/%m/%Y'))
-            )
+    df["date2"] = pd.to_datetime(df["date4"], format="%d.%m.%Y/%H:%M")
+    df["date2"] = df["date2"].apply(
+        lambda x: dt.datetime.strftime(x, "%I:%M %p %d/%m/%Y")
+    )
 
-    df.drop_duplicates(subset='title', inplace=True)
-    df['date4'] = pd.to_datetime(df['date2'], format="%I:%M %p %d/%m/%Y")
-    df['date4'] = (
-            df['date4']
-            .apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
-            )
+    df.drop_duplicates(subset="title", inplace=True)
+    df["date4"] = pd.to_datetime(df["date2"], format="%I:%M %p %d/%m/%Y")
+    df["date4"] = df["date4"].apply(lambda x: dt.datetime.strftime(x, "%Y-%m-%d %H:%M"))
     df = df.sort_values("date4", ascending=False)
     df = df.reset_index(drop=True)
     return df
 
 
-def remove_csv(names):
+def remove_csv(names: List[str]) -> None:
     """Remove all csv."""
     for i in names:
         if os.path.exists(i):
@@ -436,7 +454,7 @@ def remove_csv(names):
     print("Remove complete")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("Begin")
     start0 = t.time()
 
@@ -445,13 +463,13 @@ if __name__ == '__main__':
     conn, cursor = create_conn()
     print("Create table if not exists in DB")
     create_table(conn, cursor)
-    '''
+    """
     conn, cursor = create_conn()
     print("Create table if not exists in DB")
     create_table(conn, cursor)
     # print("Fill DB with data from csv")
     fill_table(conn, cursor, "itctray.csv")
-    '''
+    """
     print("Get old df from DB")
     df1 = sort_by_dates(conn, cursor)
     # df1 = df1.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
@@ -466,10 +484,10 @@ if __name__ == '__main__':
     # save_changes(conn, cursor)
     # print("Close connection to DB")
     # close_conn(conn, cursor)
-    '''
+    """
     today_date = "27-05-2019"
     last_date = "25-05-2019"
-    '''
+    """
     print("Parse data")
     list2 = prep_list_dates(last_date, today_date)
     print("1")
@@ -493,7 +511,6 @@ if __name__ == '__main__':
     # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df3.to_csv(names[2], index=False)
 
-
     # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     # df3.to_csv(names[2], index=False)
     # df3 = sort_by_dates(conn, cursor)
@@ -507,7 +524,7 @@ if __name__ == '__main__':
     print("Delete csv")
     remove_csv(names)
 
-    '''
+    """
     df = onepage('https://itc.ua/')
     print(df['counts'])
     print(df['counts'][0])
@@ -522,7 +539,7 @@ if __name__ == '__main__':
     header_text = header
     print(header_text)
 
-    '''
+    """
     end0 = t.time()
     elapsed_time0 = end0 - start0
     elapsed_time0 = t.strftime("%H:%M:%S", t.gmtime(elapsed_time0))
