@@ -165,7 +165,7 @@ def get_count(adres: str) -> List[int]:
     # driver = webdriver.Firefox(options=options)
     driver.get(adres)
     elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
-    list_counts = [int(i.text) for i in elems]
+    list_counts = [int(i.text) if i.text is not '' else 0 for i in elems]
     driver.close()
     return list_counts
 
