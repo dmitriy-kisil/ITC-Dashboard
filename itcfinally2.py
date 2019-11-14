@@ -160,7 +160,7 @@ def get_count(adres: str) -> List[int]:
     driver = webdriver.Firefox(
         capabilities=cap,
         options=options,
-        executable_path="/home/dmitriy/Desktop/ITC-Dashboard/geckodriver",
+        # executable_path="/home/dmitriy/Desktop/ITC-Dashboard/geckodriver",
     )
     # driver = webdriver.Firefox(options=options)
     driver.get(adres)
