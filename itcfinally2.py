@@ -149,18 +149,18 @@ def get_count(adres: str) -> List[int]:
     from selenium.webdriver.firefox.options import Options
 
     options = Options()
-    options.set_headless(headless=True)
+    options.headless = True
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
     cap = DesiredCapabilities().FIREFOX
 
     cap["marionette"] = True
 
-    # binary = "/app/vendor/firefox"
+    options.binary = os.environ['FIREFOX_BIN']
     driver = webdriver.Firefox(
         capabilities=cap,
         options=options,
-        # executable_path="/home/dmitriy/Desktop/ITC-Dashboard/geckodriver",
+        executable_path=os.environ["GECKODRIVER_PATH"]
     )
     # driver = webdriver.Firefox(options=options)
     driver.get(adres)
