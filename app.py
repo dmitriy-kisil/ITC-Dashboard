@@ -21,7 +21,7 @@ print("Get data from DB")
 (last_date_string, first_date_string,
  month_allowed, first_date, last_date, df) = prep_dashboard(conn, cursor)
 print(last_date_string, first_date_string, month_allowed, first_date, last_date)
-df = sort_by_dates(conn, cursor)
+# df = sort_by_dates(conn, cursor)
 print("Close connection to DB")
 close_conn(conn, cursor)
 
