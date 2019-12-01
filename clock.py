@@ -8,7 +8,7 @@ Created on Tue Feb 15 18:22:53 2019.
 from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 
-cmd = "python3 itcfinally2.py"
+cmd = "python3 app.py"
 subprocess.call(cmd, shell=True)
 
 sched = BlockingScheduler(timezone="Europe/Kiev")
