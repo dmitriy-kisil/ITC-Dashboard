@@ -8,8 +8,11 @@ Created on Tue Feb 15 18:22:53 2019.
 from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 
+cmd ="python3 itcfinally2.py"
+subprocess.call(cmd, shell=True)
 cmd = "python3 app.py"
 subprocess.call(cmd, shell=True)
+
 
 sched = BlockingScheduler(timezone="Europe/Kiev")
 
@@ -35,7 +38,7 @@ def scheduled_job():
     """Schedule a job."""
     print('This job is run every weekday at 5pm.')
     cmd = "python3 itcfinally2.py"
-    subprocess.call(cmd, shell=True)
+    subprocess.call(cmd, shell=False)
 
 
 sched.start()
