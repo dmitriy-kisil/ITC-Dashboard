@@ -164,8 +164,15 @@ def get_count(adres: str) -> List[int]:
     )
     # driver = webdriver.Firefox(options=options)
     driver.get(adres)
-    elems = driver.find_elements_by_class_name("disqus-comment-count.a-not-img")
+    elems = driver.find_elements_by_xpath("//span[contains(@class, 'comments part')]")
+    # Without those two lines wouldn't recognize disqus count correctly
+    [i.get_attribute('a') for i in elems]
+    [i.text for i in elems]
     list_counts = [int(i.text) if i.text is not '' else 0 for i in elems]
+    # list_counts = [i for i in list_counts if i != 0]
+    # list_counts = list_counts[5:29]
+    # Filter out other counts from bottom and right corner of page
+    list_counts = list_counts[:-31]
     driver.close()
     return list_counts
 

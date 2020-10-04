@@ -5,6 +5,7 @@
 .idea
 .vscode
 .mypy_cache/
+venv/
 dashplot.py
 fixdf.py
 ifbroke.py
