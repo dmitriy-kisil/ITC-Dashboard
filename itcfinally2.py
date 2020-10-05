@@ -506,22 +506,30 @@ if __name__ == "__main__":
     # df = df.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
     df.to_csv(names[1], index=False)
 
-    print("Post parsed data in DB")
-    fill_table(conn, cursor, names[1])
-    print("Delete duplicates in DB")
-    delete_duplicates(conn, cursor)
-    # drop_table(conn, cursor)
     df3 = sort_by_dates(conn, cursor)
+    del df3['id']
     print(df3.head(5))
     # df4 = check_table(conn, cursor)
+    free_postgresql_rows_limit_on_heroku = 10000
+    if len(df3) > free_postgresql_rows_limit_on_heroku:
+        df3 = df3.iloc[0:free_postgresql_rows_limit_on_heroku]
+        df3.to_csv(names[2], index=False)
+        print("Drop table if DB exceeds free Heroku limit on postgres")
+        drop_table(conn, cursor)
+        print("Create table if not exists in DB")
+        create_table(conn, cursor)
+        print("Post parsed data in DB")
+        fill_table(conn, cursor, names[2])
+    else:
+        df3.to_csv(names[2], index=False)
+        print("DB limit doesn't exceeded")
+        print("Post parsed data in DB")
+        fill_table(conn, cursor, names[1])
+    print("Delete duplicates in DB")
+    delete_duplicates(conn, cursor)
     # print(df4.head(5))
     # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
-    df3.to_csv(names[2], index=False)
 
-    # df3 = df3.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
-    # df3.to_csv(names[2], index=False)
-    # df3 = sort_by_dates(conn, cursor)
-    print(df3.head(5))
     print(df3.date4.tolist()[:10])
     print("Save changes in DB")
     save_changes(conn, cursor)
