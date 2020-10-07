@@ -1,0 +1,14 @@
+name: Heroku Awake
+
+on:
+  schedule:
+    - cron: "45 17 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: mikeesto/heroku-awake@1.0.0
+        with:
+          URL: "https://spredsheet321.herokuapp.com/" # ADD YOUR HEROKU URL HERE e.g. https://cats.herokuapp.com
