@@ -13,6 +13,6 @@ selenium
 argparse
 python-dotenv
 psycopg2-binary
-requests==2.21.0
+requests==2.24.0
 mypy
 

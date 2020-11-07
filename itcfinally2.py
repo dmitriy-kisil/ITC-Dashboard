@@ -500,13 +500,18 @@ if __name__ == "__main__":
     print("1")
     listadres = prep_numbers_2(1, list2)
 
-    df = calc2(listadres)
+    df2 = calc2(listadres)
     # print(df.date2.tolist()[:10])
-    df = get_one_csv(df)
+    df2 = get_one_csv(df2)
     # df = df.select_dtypes(include=['object']).applymap(lambda x: x.strip() if x else x)
-    df.to_csv(names[1], index=False)
-
-    df3 = sort_by_dates(conn, cursor)
+    old_columns = df2.columns.tolist()
+    df2['id'] = [i for i in range(len(df1), len(df1) + len(df2))]
+    new_columns = ['id'] + old_columns
+    df2 = df2[new_columns]
+    df2['date4'] = df2['date4'].apply(lambda x: x.split(" ")[0])
+    df2.to_csv(names[1], index=False)
+    df3 = pd.concat([df2, df1])
+    # df3 = sort_by_dates(conn, cursor)
     del df3['id']
     print(df3.head(5))
     # df4 = check_table(conn, cursor)
